@@ -30,7 +30,20 @@ func (rs *RuleSet) Match(metadata *C.Metadata, helper C.RuleMatchHelper) (bool, 
 		} else if rs.noResolveIP {
 			helper.ResolveIP = nil
 		}
-		return provider.Match(metadata, helper), rs.adapter
+		// A provider may itself evaluate logical rules containing other providers.
+		start := 0
+		if helper.MatchedProviders != nil {
+			start = len(*helper.MatchedProviders)
+		}
+		matched := provider.Match(metadata, helper)
+		if helper.MatchedProviders != nil {
+			if matched {
+				*helper.MatchedProviders = append(*helper.MatchedProviders, rs.ruleProviderName)
+			} else {
+				*helper.MatchedProviders = (*helper.MatchedProviders)[:start]
+			}
+		}
+		return matched, rs.adapter
 	}
 	return false, ""
 }

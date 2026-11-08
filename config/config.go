@@ -208,6 +208,7 @@ type Config struct {
 	Listeners     map[string]C.InboundListener
 	Providers     map[string]P.ProxyProvider
 	RuleProviders map[string]P.RuleProvider
+	TimeBlacklist map[string]C.TimeWindow
 	Tunnels       []LC.Tunnel
 	Sniffer       *sniffer.Config
 	TLS           *TLS
@@ -401,6 +402,11 @@ type RawTLS struct {
 	CustomTrustCert []string `yaml:"custom-certifactes" json:"custom-certifactes"`
 }
 
+type RawTimeWindow struct {
+	Start string `yaml:"start" json:"start"`
+	End   string `yaml:"end" json:"end"`
+}
+
 type RawConfig struct {
 	Port                          int                     `yaml:"port" json:"port"`
 	SocksPort                     int                     `yaml:"socks-port" json:"socks-port"`
@@ -451,6 +457,7 @@ type RawConfig struct {
 
 	ProxyProvider map[string]map[string]any `yaml:"proxy-providers" json:"proxy-providers"`
 	RuleProvider  map[string]map[string]any `yaml:"rule-providers" json:"rule-providers"`
+	TimeBlacklist map[string]RawTimeWindow  `yaml:"time-blacklist" json:"time-blacklist"`
 	Proxy         []map[string]any          `yaml:"proxies" json:"proxies"`
 	ProxyGroup    []map[string]any          `yaml:"proxy-groups" json:"proxy-groups"`
 	Rule          []string                  `yaml:"rules" json:"rule"`
@@ -695,6 +702,11 @@ func ParseRawConfig(rawCfg *RawConfig) (*Config, error) {
 		return nil, err
 	}
 	config.RuleProviders = ruleProviders
+
+	config.TimeBlacklist, err = parseTimeBlacklist(rawCfg.TimeBlacklist, ruleProviders)
+	if err != nil {
+		return nil, err
+	}
 
 	subRules, err := parseSubRules(rawCfg, proxies, ruleProviders)
 	if err != nil {
@@ -1015,6 +1027,21 @@ func parseListeners(cfg *RawConfig) (listeners map[string]C.InboundListener, err
 
 	}
 	return
+}
+
+func parseTimeBlacklist(raw map[string]RawTimeWindow, providers map[string]P.RuleProvider) (map[string]C.TimeWindow, error) {
+	windows := make(map[string]C.TimeWindow, len(raw))
+	for name, window := range raw {
+		if _, ok := providers[name]; !ok {
+			return nil, fmt.Errorf("time-blacklist: rule provider %q not found", name)
+		}
+		parsed, err := C.ParseTimeWindow(window.Start, window.End)
+		if err != nil {
+			return nil, fmt.Errorf("time-blacklist %q: %w", name, err)
+		}
+		windows[name] = parsed
+	}
+	return windows, nil
 }
 
 func parseRuleProviders(cfg *RawConfig) (ruleProviders map[string]P.RuleProvider, err error) {

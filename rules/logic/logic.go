@@ -176,17 +176,38 @@ func (logic *Logic) RuleType() C.RuleType {
 	return logic.ruleType
 }
 
+// providerCheckpoint and restoreProviders preserve contributions from enclosing
+// expressions while discarding those made by an unsuccessful branch.
+func providerCheckpoint(helper C.RuleMatchHelper) int {
+	if helper.MatchedProviders != nil {
+		return len(*helper.MatchedProviders)
+	}
+	return 0
+}
+
+func restoreProviders(helper C.RuleMatchHelper, checkpoint int) {
+	if helper.MatchedProviders != nil {
+		*helper.MatchedProviders = (*helper.MatchedProviders)[:checkpoint]
+	}
+}
+
 func matchSubRules(metadata *C.Metadata, name string, subRules map[string][]C.Rule, helper C.RuleMatchHelper) (bool, string) {
 	for _, rule := range subRules[name] {
+		checkpoint := providerCheckpoint(helper)
 		if m, a := rule.Match(metadata, helper); m {
 			if rule.RuleType() == C.SubRules {
 				m, a = matchSubRules(metadata, rule.Adapter(), subRules, helper)
 			}
 			if m && (a == "PASS-RULE" || (helper.CheckPassRule != nil && helper.CheckPassRule(a))) {
-				continue 
+				restoreProviders(helper, checkpoint)
+				continue
+			}
+			if !m {
+				restoreProviders(helper, checkpoint)
 			}
 			return m, a
 		}
+		restoreProviders(helper, checkpoint)
 	}
 	return false, ""
 }
@@ -194,25 +215,37 @@ func matchSubRules(metadata *C.Metadata, name string, subRules map[string][]C.Ru
 func (logic *Logic) Match(metadata *C.Metadata, helper C.RuleMatchHelper) (bool, string) {
 	switch logic.ruleType {
 	case C.SubRules:
+		checkpoint := providerCheckpoint(helper)
 		if m, _ := logic.rules[0].Match(metadata, helper); m {
-			return matchSubRules(metadata, logic.adapter, logic.subRules, helper)
+			matched, adapter := matchSubRules(metadata, logic.adapter, logic.subRules, helper)
+			if !matched {
+				restoreProviders(helper, checkpoint)
+			}
+			return matched, adapter
 		}
+		restoreProviders(helper, checkpoint)
 		return false, ""
 	case C.NOT:
+		// A negated expression never contributes positive provider matches.
+		helper.MatchedProviders = nil
 		if m, _ := logic.rules[0].Match(metadata, helper); !m {
 			return true, logic.adapter
 		}
 		return false, ""
 	case C.OR:
 		for _, rule := range logic.rules {
+			checkpoint := providerCheckpoint(helper)
 			if m, _ := rule.Match(metadata, helper); m {
 				return true, logic.adapter
 			}
+			restoreProviders(helper, checkpoint)
 		}
 		return false, ""
 	case C.AND:
+		checkpoint := providerCheckpoint(helper)
 		for _, rule := range logic.rules {
 			if m, _ := rule.Match(metadata, helper); !m {
+				restoreProviders(helper, checkpoint)
 				return false, logic.adapter
 			}
 		}

@@ -156,6 +156,10 @@ type RuleMatchHelper struct {
 	ResolveIP     func()
 	FindProcess   func()
 	CheckPassRule func(adapterName string) bool
+	// MatchedProviders, when non-nil, receives provider names in match order;
+	// repeated matches may append the same name more than once. Callers should
+	// use a separate slice for each routing attempt and discard skipped routes.
+	MatchedProviders *[]string
 }
 
 type RuleGroup interface {

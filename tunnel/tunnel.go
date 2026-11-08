@@ -48,6 +48,7 @@ var (
 	proxies       = make(map[string]C.Proxy)
 	providers     map[string]P.ProxyProvider
 	ruleProviders map[string]P.RuleProvider
+	timeBlacklist map[string]C.TimeWindow
 	configMux     sync.RWMutex
 
 	// for compatibility, lazy init
@@ -204,10 +205,16 @@ func Listeners() map[string]C.InboundListener {
 
 // UpdateRules handle update rules
 func UpdateRules(newRules []C.Rule, newSubRule map[string][]C.Rule, rp map[string]P.RuleProvider) {
+	UpdateRulesWithTimeBlacklist(newRules, newSubRule, rp, nil)
+}
+
+// UpdateRulesWithTimeBlacklist atomically publishes rules and their time windows.
+func UpdateRulesWithTimeBlacklist(newRules []C.Rule, newSubRule map[string][]C.Rule, rp map[string]P.RuleProvider, blacklist map[string]C.TimeWindow) {
 	configMux.Lock()
 	rules = newRules
 	ruleProviders = rp
 	subRules = newSubRule
+	timeBlacklist = blacklist
 	configMux.Unlock()
 }
 
@@ -661,7 +668,12 @@ func match(metadata *C.Metadata, helper C.RuleMatchHelper) (C.Proxy, C.Rule, err
 		var rematchRule C.Rule
 	GetRules:
 		for _, rule := range getRules(metadata) {
-			if matched, ada := rule.Match(metadata, helper); matched {
+			var matchedProviders []string
+			ruleHelper := helper
+			if len(timeBlacklist) != 0 {
+				ruleHelper.MatchedProviders = &matchedProviders
+			}
+			if matched, ada := rule.Match(metadata, ruleHelper); matched {
 				adapter, ok := proxies[ada]
 				if !ok {
 					continue
@@ -686,6 +698,11 @@ func match(metadata *C.Metadata, helper C.RuleMatchHelper) (C.Proxy, C.Rule, err
 					continue
 				}
 
+				if name := blacklistedProvider(matchedProviders, timeBlacklist, time.Now()); name != "" {
+					log.Debugln("[Rule] time-blacklist rejected rule provider %s", name)
+					return proxies["REJECT"], rule, nil
+				}
+
 				return adapter, rule, nil
 			}
 		}
@@ -708,6 +725,15 @@ func match(metadata *C.Metadata, helper C.RuleMatchHelper) (C.Proxy, C.Rule, err
 		}
 		return proxies["DIRECT"], nil, nil
 	}
+}
+
+func blacklistedProvider(names []string, windows map[string]C.TimeWindow, now time.Time) string {
+	for _, name := range names {
+		if window, ok := windows[name]; ok && window.Contains(now) {
+			return name
+		}
+	}
+	return ""
 }
 
 func getRules(metadata *C.Metadata) []C.Rule {
