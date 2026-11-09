@@ -8,7 +8,7 @@
       "mode": "exec",
       "program": "${workspaceFolder}/bin/mihomo",
       "cwd": "${workspaceFolder}",
-      "args": [],
+      "args": ["-f", "${workspaceFolder}/config.test.yaml"],
       "preLaunchTask": "mihomo: build"
     }
   ]

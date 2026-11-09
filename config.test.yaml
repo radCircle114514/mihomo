@@ -1,0 +1,484 @@
+# 1. 引入基础配置 (可选，也可以直接写在这里)
+# 这里用 `include` 指令合并 base.yaml (shared across providers)
+# Clash基础配置
+port: 7890
+socks-port: 7891
+redir-port: 7892
+mixed-port: 7893
+allow-lan: false
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+hosts:
+clash-for-android:
+  append-system-dns: false
+profile:
+  tracing: true
+  store-selected: true
+  store-fake-ip: true
+tproxy-port: 7895
+bind-address: "*"
+keep-alive-interval: 15
+keep-alive-idle: 600
+ipv6: false
+geox-url:
+  mmdb: https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb
+  geosite: https://testingcf.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
+dns:
+  enable: true
+  fake-ip-range: 198.18.0.1/16
+  use-hosts: true
+  default-nameserver: [223.5.5.5, 119.29.29.29, 114.114.114.114]
+  nameserver:
+    [
+      "https://zone.rlose.com:39933/api-query",
+      "https://radar.workrent.net:39933/api-query",
+    ]
+  fallback:
+    [
+      "tls://8.8.4.4:853",
+      "https://dns.cloudflare.com/dns-query",
+      "https://koala.madns-lemon.site:2443/dns-query",
+      "https://whale.madns-peach.site:2443/dns-query",
+      "https://otter.madns-pear.site:2443/dns-query",
+      "https://rhino.madns-berry.site:2443/dns-query",
+      "https://cobra.madns-cherry.site:2443/dns-query",
+      "https://dns.twnic.tw/dns-query",
+    ]
+  fallback-filter: {
+      geoip: true,
+      # geoip-code: CN,
+      # geosite: [gfw],
+      ipcidr: [240.0.0.0/4, 0.0.0.0/32],
+    }
+  fake-ip-filter:
+    [
+      "*.lan",
+      "*.linksys.com",
+      "*.linksyssmartwifi.com",
+      swscan.apple.com,
+      mesu.apple.com,
+      swquery.apple.com,
+      swdownload.apple.com,
+      swcdn.apple.com,
+      swdist.apple.com,
+      "*.msftconnecttest.com",
+      "*.msftncsi.com",
+      "xbox.*.microsoft.com",
+      "xbox.*.*.microsoft.com",
+      +.xboxlive.com,
+      "time.*.com",
+      "time.*.gov",
+      "time.*.edu.cn",
+      "time.*.apple.com",
+      "time1.*.com",
+      "time2.*.com",
+      "time3.*.com",
+      "time4.*.com",
+      "time5.*.com",
+      "time6.*.com",
+      "time7.*.com",
+      "ntp.*.com",
+      "ntp.*.com",
+      "ntp1.*.com",
+      "ntp2.*.com",
+      "ntp3.*.com",
+      "ntp4.*.com",
+      "ntp5.*.com",
+      "ntp6.*.com",
+      "ntp7.*.com",
+      "*.time.edu.cn",
+      "*.ntp.org.cn",
+      +.pool.ntp.org,
+      time1.cloud.tencent.com,
+      lens.l.google.com,
+      +.music.163.com,
+      +.126.net,
+      musicapi.taihe.com,
+      music.taihe.com,
+      songsearch.kugou.com,
+      trackercdn.kugou.com,
+      "*.kuwo.cn",
+      api-jooxtt.sanook.com,
+      api.joox.com,
+      joox.com,
+      +.y.qq.com,
+      +.music.tc.qq.com,
+      aqqmusic.tc.qq.com,
+      +.stream.qqmusic.qq.com,
+      +.xiami.com,
+      +.music.migu.cn,
+      "+.stun.*.*",
+      "+.stun.*.*.*",
+      "+.stun.*.*.*.*",
+      "+.stun.*.*.*.*.*",
+      +.srv.nintendo.net,
+      "*.n.n.srv.nintendo.net",
+      +.stun.playstation.net,
+      +.battlenet.com.cn,
+      +.wotgame.cn,
+      +.wggames.cn,
+      +.wowsgame.cn,
+      +.wargaming.net,
+      "*.square-enix.com",
+      "*.finalfantasyxiv.com",
+      "*.ffxiv.com",
+      "*.ff14.sdo.com",
+      ff.dorado.sdo.com,
+      localhost.ptlogin2.qq.com,
+      localhost.sec.qq.com,
+      proxy.golang.org,
+      +.qq.com,
+      +.baidu.com,
+      +.163.com,
+      +.126.net,
+      +.taobao.com,
+      +.jd.com,
+      +.tmall.com,
+      "*.mcdn.bilivideo.cn",
+      +.nvidia.com,
+      +.nvidia.cn,
+      +.nvgs.nvidia.com,
+      +.nvgs.nvidia.cn,
+      shark007.net,
+    ]
+
+# 测试规则仅使用 DIRECT 和 REJECT
+rules:
+  - "DOMAIN-SUFFIX,mysql.rds.aliyuncs.com,DIRECT"
+  - "DOMAIN-SUFFIX,qyapi.weixin.qq.com,DIRECT"
+  - "IP-CIDR,182.92.98.95/32,DIRECT,no-resolve"
+  - "IP-CIDR,47.93.174.249/32,DIRECT,no-resolve"
+  - "RULE-SET,Google,DIRECT"
+  - "RULE-SET,Banned,REJECT"
+  - "RULE-SET,Special,DIRECT"
+  - "RULE-SET,YouTube,DIRECT"
+  - "RULE-SET,Telegram,DIRECT"
+  - "RULE-SET,X,DIRECT"
+  - "RULE-SET,AI,DIRECT"
+  - "RULE-SET,Bond,DIRECT"
+  - "RULE-SET,Crypto,DIRECT"
+  - "RULE-SET,Meta,DIRECT"
+  - "RULE-SET,NicoNico,DIRECT"
+  - "RULE-SET,Discord,DIRECT"
+  - "RULE-SET,GitHub,DIRECT"
+  - "RULE-SET,Microsoft,DIRECT"
+  - "RULE-SET,TikTok,DIRECT"
+  - "RULE-SET,TaiwanForum,DIRECT"
+  - "RULE-SET,Facebook,DIRECT"
+  - "RULE-SET,Instagram,DIRECT"
+  - "RULE-SET,Threads,DIRECT"
+  - "RULE-SET,Reddit,DIRECT"
+  - "RULE-SET,DomesticForum,DIRECT"
+  - "RULE-SET,Proxy,DIRECT"
+  - "RULE-SET,NetworkTest,DIRECT"
+  - "RULE-SET,Domestic,DIRECT"
+  - "RULE-SET,DomesticAI,DIRECT"
+  - "GEOSITE,CN,DIRECT"
+  - "RULE-SET,Netflix,DIRECT"
+  - "RULE-SET,Apple,DIRECT"
+  - "RULE-SET,Spotify,DIRECT"
+  - "RULE-SET,Amazon,DIRECT"
+  - "RULE-SET,Steam,DIRECT"
+  - "RULE-SET,GlobalTV,DIRECT"
+  - "RULE-SET,PayPal,DIRECT"
+  - "RULE-SET,Stripe,DIRECT"
+  - "RULE-SET,Scholar,DIRECT"
+  - "RULE-SET,SpeedTest,DIRECT"
+  - "RULE-SET,Pornhub,REJECT"
+  - "GEOIP,CN,DIRECT"
+  - "MATCH,DIRECT"
+time-blacklist:
+  DomesticForum:
+    start: "00:00"
+    end: "22:00"
+
+rule-providers:
+  AI:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/AI.yaml",
+      path: ./Rules/AI,
+      interval: 86400,
+    }
+  Amazon:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Amazon.yaml",
+      path: ./Rules/Amazon,
+      interval: 86400,
+    }
+  Apple:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Apple.yaml",
+      path: ./Rules/Apple,
+      interval: 86400,
+    }
+  Banned:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Banned.yaml",
+      path: ./Rules/Banned,
+      interval: 86400,
+    }
+  Bond:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Bond.yaml",
+      path: ./Rules/Bond,
+      interval: 86400,
+    }
+  Crypto:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Crypto.yaml",
+      path: ./Rules/Crypto,
+      interval: 86400,
+    }
+  Discord:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Discord.yaml",
+      path: ./Rules/Discord,
+      interval: 86400,
+    }
+  Domestic:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Domestic.yaml",
+      path: ./Rules/Domestic,
+      interval: 86400,
+    }
+  DomesticAI:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/DomesticAI.yaml",
+      path: ./Rules/DomesticAI,
+      interval: 86400,
+    }
+  DomesticForum:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/DomesticForum.yaml",
+      path: ./Rules/DomesticForum,
+      interval: 86400,
+    }
+  Facebook:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Facebook.yaml",
+      path: ./Rules/Facebook,
+      interval: 86400,
+    }
+  GitHub:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/GitHub.yaml",
+      path: ./Rules/GitHub,
+      interval: 86400,
+    }
+  GlobalTV:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/GlobalTV.yaml",
+      path: ./Rules/GlobalTV,
+      interval: 86400,
+    }
+  Google:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Google.yaml",
+      path: ./Rules/Google,
+      interval: 86400,
+    }
+  Instagram:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Instagram.yaml",
+      path: ./Rules/Instagram,
+      interval: 86400,
+    }
+  Meta:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Meta.yaml",
+      path: ./Rules/Meta,
+      interval: 86400,
+    }
+  Microsoft:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Microsoft.yaml",
+      path: ./Rules/Microsoft,
+      interval: 86400,
+    }
+  Netflix:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Netflix.yaml",
+      path: ./Rules/Netflix,
+      interval: 86400,
+    }
+  NetworkTest:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/NetworkTest.yaml",
+      path: ./Rules/NetworkTest,
+      interval: 86400,
+    }
+  NicoNico:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/NicoNico.yaml",
+      path: ./Rules/NicoNico,
+      interval: 86400,
+    }
+  PayPal:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/PayPal.yaml",
+      path: ./Rules/PayPal,
+      interval: 86400,
+    }
+  Pornhub:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Pornhub.yaml",
+      path: ./Rules/Pornhub,
+      interval: 86400,
+    }
+  Proxy:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Proxy.yaml",
+      path: ./Rules/Proxy,
+      interval: 86400,
+    }
+  Reddit:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Reddit.yaml",
+      path: ./Rules/Reddit,
+      interval: 86400,
+    }
+  Scholar:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Scholar.yaml",
+      path: ./Rules/Scholar,
+      interval: 86400,
+    }
+  Special:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Special.yaml",
+      path: ./Rules/Special,
+      interval: 86400,
+    }
+  SpeedTest:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/SpeedTest.yaml",
+      path: ./Rules/SpeedTest,
+      interval: 86400,
+    }
+  Spotify:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Spotify.yaml",
+      path: ./Rules/Spotify,
+      interval: 86400,
+    }
+  Steam:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Steam.yaml",
+      path: ./Rules/Steam,
+      interval: 86400,
+    }
+  Stripe:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Stripe.yaml",
+      path: ./Rules/Stripe,
+      interval: 86400,
+    }
+  Telegram:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Telegram.yaml",
+      path: ./Rules/Telegram,
+      interval: 86400,
+    }
+  Threads:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/Threads.yaml",
+      path: ./Rules/Threads,
+      interval: 86400,
+    }
+  TaiwanForum:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/TaiwanForum.yaml",
+      path: ./Rules/TaiwanForum,
+      interval: 86400,
+    }
+  TikTok:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/TikTok.yaml",
+      path: ./Rules/TikTok,
+      interval: 86400,
+    }
+  X:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/X.yaml",
+      path: ./Rules/X,
+      interval: 86400,
+    }
+  YouTube:
+    {
+      type: http,
+      behavior: classical,
+      url: "https://raw.githubusercontent.com/radCircle114514/clash-providers/master/Provider/YouTube.yaml",
+      path: ./Rules/YouTube,
+      interval: 86400,
+    }
